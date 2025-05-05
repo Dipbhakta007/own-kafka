@@ -34,10 +34,6 @@ func main() {
 	binary.BigEndian.PutUint32(response[0:4], 0)
 	binary.BigEndian.PutUint32(response[4:8], 7)
 
-	_, err = conn.Write(response)
-	if err != nil {
-		fmt.Println("Error writing response to connection")
-		os.Exit(1)
-	}
+	conn.Write(response)
 
 }
