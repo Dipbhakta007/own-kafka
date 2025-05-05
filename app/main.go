@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -35,5 +36,7 @@ func main() {
 	binary.BigEndian.PutUint32(response[4:8], 7)
 
 	conn.Write(response)
+
+	time.Sleep(1 * time.Second)
 
 }
