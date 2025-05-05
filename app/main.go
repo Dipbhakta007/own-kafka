@@ -22,14 +22,12 @@ func main() {
 		fmt.Println("Failed to bind to port 9092")
 		os.Exit(1)
 	}
-	defer l.Close()
 
 	conn, err := l.Accept()
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
-	defer conn.Close()
 
 	var response []byte = make([]byte, 8)
 
