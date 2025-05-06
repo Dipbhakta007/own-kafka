@@ -40,12 +40,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	var response []byte = make([]byte, 8)
+	var response []byte = make([]byte, 10)
 
 	correlation_id := binary.BigEndian.Uint32(header[8:12])
 
 	binary.BigEndian.PutUint32(response[0:4], 0)
 	binary.BigEndian.PutUint32(response[4:8], correlation_id)
+	binary.BigEndian.PutUint16(response[8:12], 35)
 
 	conn.Write(response)
 
