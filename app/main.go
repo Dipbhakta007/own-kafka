@@ -23,17 +23,29 @@ func main() {
 		fmt.Println("Failed to bind to port 9092")
 		os.Exit(1)
 	}
+	defer l.Close()
 
 	conn, err := l.Accept()
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
+	defer conn.Close()
+
+	var header []byte = make([]byte, 12)
+	_, err = conn.Read(header)
+
+	if err != nil {
+		fmt.Println("Error reading from connection: ", err.Error())
+		os.Exit(1)
+	}
 
 	var response []byte = make([]byte, 8)
 
+	correlation_id := binary.BigEndian.Uint32(header[8:12])
+
 	binary.BigEndian.PutUint32(response[0:4], 0)
-	binary.BigEndian.PutUint32(response[4:8], 7)
+	binary.BigEndian.PutUint32(response[4:8], correlation_id)
 
 	conn.Write(response)
 
