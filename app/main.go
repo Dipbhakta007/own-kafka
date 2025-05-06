@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"time"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -50,6 +49,9 @@ func main() {
 
 	conn.Write(response)
 
-	time.Sleep(1 * time.Second)
+	if tcpConn, ok := conn.(*net.TCPConn); ok {
+		fmt.Println("Connection is a TCP connection!")
+		tcpConn.CloseWrite()
+	}
 
 }
