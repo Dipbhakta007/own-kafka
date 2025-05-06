@@ -40,7 +40,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var response []byte = make([]byte, 10)
+	var response []byte = make([]byte, 12)
 
 	correlation_id := binary.BigEndian.Uint32(header[8:12])
 
