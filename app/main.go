@@ -39,21 +39,26 @@ func main() {
 		os.Exit(1)
 	}
 
-	body := make([]byte, 0)
-	body = append(body, 0x00, 0x00) //error code
-	body = append(body, 0x02)       //compact array length
-	body = append(body, 0x00, 0x12,
-		0x00, 0x00,
-		0x00, 0x04) //compact array item
-	body = append(body, 0x00)
-	body = append(body, 0x00, 0x00,
-		0x00, 0x00) //throttle time ms
-	body = append(body, 0x00) //tagged fields
+	correlationId := binary.BigEndian.Uint32(header[8:12])
+	requestApiVersion := binary.BigEndian.Uint16(header[6:8])
 
-	correlation_id := binary.BigEndian.Uint32(header[8:12])
+	body := make([]byte, 0)
+	if requestApiVersion <= 4 {
+		body = append(body, 0x00, 0x23) //error code
+	} else {
+		body = append(body, 0x00, 0x00) //error code
+		body = append(body, 0x02)       //compact array length
+		body = append(body, 0x00, 0x12,
+			0x00, 0x00,
+			0x00, 0x04) //compact array item
+		body = append(body, 0x00)
+		body = append(body, 0x00, 0x00,
+			0x00, 0x00) //throttle time ms
+		body = append(body, 0x00) //tagged fields
+	}
 
 	headerBuf := make([]byte, 4)
-	binary.BigEndian.PutUint32(headerBuf, correlation_id)
+	binary.BigEndian.PutUint32(headerBuf, correlationId)
 	fullResPonse := append(headerBuf, body...)
 
 	final := make([]byte, 4)
