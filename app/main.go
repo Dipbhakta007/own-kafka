@@ -39,15 +39,25 @@ func main() {
 		os.Exit(1)
 	}
 
-	var response []byte = make([]byte, 12)
+	body := make([]byte, 0)
+	body = append(body, 0x00, 0x00) //error code
+	body = append(body, 0x01)       //compact array length
+	body = append(body, 0x00, 0x12,
+		0x00, 0x00,
+		0x00, 0x04) //compact array item
+	body = append(body, 0x00) //tagged fields
 
 	correlation_id := binary.BigEndian.Uint32(header[8:12])
 
-	binary.BigEndian.PutUint32(response[0:4], 0)
-	binary.BigEndian.PutUint32(response[4:8], correlation_id)
-	binary.BigEndian.PutUint16(response[8:12], 35)
+	headerBuf := make([]byte, 4)
+	binary.BigEndian.PutUint32(headerBuf, correlation_id)
+	fullResPonse := append(headerBuf, body...)
 
-	conn.Write(response)
+	final := make([]byte, 4)
+	binary.BigEndian.PutUint32(final, uint32(len(fullResPonse)))
+	final = append(final, fullResPonse...)
+
+	conn.Write(final)
 
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
 		fmt.Println("Connection is a TCP connection!")
