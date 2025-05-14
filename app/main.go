@@ -48,7 +48,7 @@ func main() {
 	body = append(body, 0x00)
 	body = append(body, 0x00, 0x00,
 		0x00, 0x00) //throttle time ms
-	body = append(body, 0x00, 0x00) //tagged fields
+	body = append(body, 0x00) //tagged fields
 
 	correlation_id := binary.BigEndian.Uint32(header[8:12])
 
