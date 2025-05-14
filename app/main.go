@@ -43,6 +43,7 @@ func main() {
 	body = append(body, 0x00, 0x00) //error code
 	body = append(body, 0x01)       //compact array length
 	body = append(body, 0x00, 0x12,
+		0x00, 0x00,
 		0x00, 0x04) //compact array item
 	body = append(body, 0x00) //tagged fields
 
