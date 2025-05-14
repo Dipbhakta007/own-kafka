@@ -42,6 +42,8 @@ func main() {
 	correlationId := binary.BigEndian.Uint32(header[8:12])
 	requestApiVersion := binary.BigEndian.Uint16(header[6:8])
 
+	fmt.Println(requestApiVersion)
+
 	body := make([]byte, 0)
 	if requestApiVersion <= 4 {
 		body = append(body, 0x00, 0x23) //error code
