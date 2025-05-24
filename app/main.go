@@ -11,39 +11,38 @@ import (
 var _ = net.Listen
 var _ = os.Exit
 
-func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
-	fmt.Println("Logs from your program will appear here!")
-
-	// Uncomment this block to pass the first stage
-
-	l, err := net.Listen("tcp", "0.0.0.0:9092")
-	if err != nil {
-		fmt.Println("Failed to bind to port 9092")
-		os.Exit(1)
-	}
-	defer l.Close()
-
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
+func handleConnection(conn net.Conn) {
 	defer conn.Close()
+	for {
+		var messageSize []byte = make([]byte, 4)
+		_, err := conn.Read(messageSize)
+		if err != nil {
+			fmt.Println("Connection closed")
+			if tcpConn, ok := conn.(*net.TCPConn); ok {
+				fmt.Println("Connection is a TCP connection!")
+				tcpConn.CloseWrite()
+			}
+			break
+		}
+		messageSizeInt := binary.BigEndian.Uint32(messageSize)
+		var reqMessage []byte = make([]byte, messageSizeInt)
 
-	var header []byte = make([]byte, 12)
-	_, err = conn.Read(header)
+		_, err = conn.Read(reqMessage)
+		if err != nil {
+			fmt.Println("Error reading request message")
+			break
+		}
+		requestApiVersion := binary.BigEndian.Uint16(reqMessage[2:4])
+		correlationId := binary.BigEndian.Uint32(reqMessage[4:8])
 
-	if err != nil {
-		fmt.Println("Error reading from connection: ", err.Error())
-		os.Exit(1)
+		response := buildRespose(requestApiVersion, correlationId)
+
+		conn.Write(response)
+
 	}
+}
 
-	correlationId := binary.BigEndian.Uint32(header[8:12])
-	requestApiVersion := binary.BigEndian.Uint16(header[6:8])
-
-	// fmt.Println(requestApiVersion)
-
+func buildRespose(requestApiVersion uint16, correlationId uint32) []byte {
 	body := make([]byte, 0)
 	if requestApiVersion > 4 {
 		body = append(body, 0x00, 0x23) //error code
@@ -66,12 +65,29 @@ func main() {
 	final := make([]byte, 4)
 	binary.BigEndian.PutUint32(final, uint32(len(fullResPonse)))
 	final = append(final, fullResPonse...)
+	return final
+}
 
-	conn.Write(final)
+func main() {
+	// You can use print statements as follows for debugging, they'll be visible when running tests.
+	fmt.Println("Logs from your program will appear here!")
 
-	if tcpConn, ok := conn.(*net.TCPConn); ok {
-		fmt.Println("Connection is a TCP connection!")
-		tcpConn.CloseWrite()
+	// Uncomment this block to pass the first stage
+
+	l, err := net.Listen("tcp", "0.0.0.0:9092")
+	if err != nil {
+		fmt.Println("Failed to bind to port 9092")
+		os.Exit(1)
 	}
+	defer l.Close()
+
+	conn, err := l.Accept()
+	if err != nil {
+		fmt.Println("Error accepting connection: ", err.Error())
+		os.Exit(1)
+	}
+	defer conn.Close()
+
+	handleConnection(conn)
 
 }
