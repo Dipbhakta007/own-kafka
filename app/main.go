@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"net"
 	"os"
 )
@@ -15,7 +16,7 @@ func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	for {
 		var messageSize []byte = make([]byte, 4)
-		_, err := conn.Read(messageSize)
+		_, err := io.ReadFull(conn, messageSize)
 		if err != nil {
 			fmt.Println("Connection closed")
 			if tcpConn, ok := conn.(*net.TCPConn); ok {
@@ -27,7 +28,7 @@ func handleConnection(conn net.Conn) {
 		messageSizeInt := binary.BigEndian.Uint32(messageSize)
 		var reqMessage []byte = make([]byte, messageSizeInt)
 
-		_, err = conn.Read(reqMessage)
+		_, err = io.ReadFull(conn, reqMessage)
 		if err != nil {
 			fmt.Println("Error reading request message")
 			break
@@ -81,13 +82,13 @@ func main() {
 	}
 	defer l.Close()
 
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			continue
+		}
+		go handleConnection(conn)
 	}
-	defer conn.Close()
-
-	handleConnection(conn)
 
 }
