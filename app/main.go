@@ -49,11 +49,17 @@ func buildRespose(requestApiVersion uint16, correlationId uint32) []byte {
 		body = append(body, 0x00, 0x23) //error code
 	} else {
 		body = append(body, 0x00, 0x00) //error code
-		body = append(body, 0x02)       //compact array length
-		body = append(body, 0x00, 0x12,
+		body = append(body, 0x03)       //compact array length
+		body = append(body,
+			0x00, 0x12,
 			0x00, 0x00,
-			0x00, 0x04) //compact array item
-		body = append(body, 0x00)
+			0x00, 0x04,
+			0x00) //compact array item
+		body = append(body,
+			0x00, 0x4b,
+			0x00, 0x00,
+			0x00, 0x00,
+			0x00) //compact array item
 		body = append(body, 0x00, 0x00,
 			0x00, 0x00) //throttle time ms
 		body = append(body, 0x00) //tagged fields
