@@ -8,7 +8,6 @@ import (
 	"os"
 )
 
-// Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
 var _ = net.Listen
 var _ = os.Exit
 
@@ -20,7 +19,7 @@ const (
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	for {
-		var messageSize []byte = make([]byte, 4)
+		messageSize := make([]byte, 4)
 		_, err := io.ReadFull(conn, messageSize)
 		if err != nil {
 			fmt.Println("Connection closed")
@@ -30,14 +29,15 @@ func handleConnection(conn net.Conn) {
 			}
 			break
 		}
-		messageSizeInt := binary.BigEndian.Uint32(messageSize)
-		var reqMessage []byte = make([]byte, messageSizeInt)
 
+		messageSizeInt := binary.BigEndian.Uint32(messageSize)
+		reqMessage := make([]byte, messageSizeInt)
 		_, err = io.ReadFull(conn, reqMessage)
 		if err != nil {
 			fmt.Println("Error reading request message")
 			break
 		}
+
 		requestApiKey := binary.BigEndian.Uint16(reqMessage[0:2])
 		requestApiVersion := binary.BigEndian.Uint16(reqMessage[2:4])
 		correlationId := binary.BigEndian.Uint32(reqMessage[4:8])
@@ -56,16 +56,15 @@ func handleConnection(conn net.Conn) {
 		}
 
 		conn.Write(response)
-
 	}
 }
 
 func extractTopicNames(topicStream []byte) []string {
 	cilentIdLength := binary.BigEndian.Uint16(topicStream[0:2])
 	fmt.Println(int(cilentIdLength))
-	idx := int(cilentIdLength + 2)
 
-	idx++ //tag Buffer
+	idx := int(cilentIdLength + 2)
+	idx++ // tag buffer
 
 	fmt.Println(idx)
 	fmt.Println(topicStream[idx])
@@ -73,7 +72,7 @@ func extractTopicNames(topicStream []byte) []string {
 	topicNum := int(topicStream[idx]) - 1
 	idx++
 
-	var topics = make([]string, 0)
+	var topics []string
 	fmt.Println("Topic numbers")
 	fmt.Println(topicNum)
 
@@ -89,8 +88,8 @@ func extractTopicNames(topicStream []byte) []string {
 		idx += 4 * partitionsLen
 		idx++
 	}
-	return topics
 
+	return topics
 }
 
 func buildFullResponse(body []byte, correlationId uint32) []byte {
@@ -105,25 +104,28 @@ func buildFullResponse(body []byte, correlationId uint32) []byte {
 }
 
 func buildDescribePartitionsResponse(topics []string, correlationId uint32) []byte {
-	var body = make([]byte, 0)
+	body := make([]byte, 0)
+
 	body = append(body, 0x00) // Tagged buffer
 	body = append(body,
 		0x00, 0x00,
-		0x00, 0x00) //throttle time ms
+		0x00, 0x00) // Throttle time ms
+
 	body = append(body, byte(len(topics)+1))
 	for _, topicName := range topics {
 		body = append(body, 0x00, 0x03)             // Error code
-		body = append(body, byte(len(topicName)+1)) // topicName
-		body = append(body, topicName...)           // topicName
-		body = append(body, (make([]byte, 16))...)  //topic ID
-		body = append(body, 0x00)                   // is internal
-		body = append(body, 0x01)                   // No Partitions
+		body = append(body, byte(len(topicName)+1)) // Topic name length
+		body = append(body, topicName...)           // Topic name
+		body = append(body, make([]byte, 16)...)    // Topic ID
+		body = append(body, 0x00)                   // Is internal
+		body = append(body, 0x01)                   // No partitions
 		body = append(body,
 			0x00, 0x00,
-			0x0d, 0xf8) // authorized operations
+			0x0d, 0xf8) // Authorized operations
 		body = append(body, 0x00) // Tagged Fields
 	}
-	body = append(body, 0xff) // next cursor
+
+	body = append(body, 0xff) // Next cursor (null)
 	body = append(body, 0x00) // Tagged Fields
 
 	return buildFullResponse(body, correlationId)
@@ -131,33 +133,36 @@ func buildDescribePartitionsResponse(topics []string, correlationId uint32) []by
 
 func buildApiVersionResponse(requestApiVersion uint16, correlationId uint32) []byte {
 	body := make([]byte, 0)
+
 	if requestApiVersion > 4 {
-		body = append(body, 0x00, 0x23) //error code
+		body = append(body, 0x00, 0x23) // Error code
 	} else {
-		body = append(body, 0x00, 0x00) //error code
-		body = append(body, 0x03)       //compact array length
+		body = append(body, 0x00, 0x00) // Error code
+		body = append(body, 0x03)       // Compact array length
+
 		body = append(body,
 			0x00, 0x12,
 			0x00, 0x00,
 			0x00, 0x04,
-			0x00) //compact array item
+			0x00) // Compact array item
+
 		body = append(body,
 			0x00, 0x4b,
 			0x00, 0x00,
 			0x00, 0x00,
-			0x00) //compact array item
+			0x00) // Compact array item
+
 		body = append(body, 0x00, 0x00,
-			0x00, 0x00) //throttle time ms
-		body = append(body, 0x00) //tagged fields
+			0x00, 0x00) // Throttle time ms
+
+		body = append(body, 0x00) // Tagged fields
 	}
+
 	return buildFullResponse(body, correlationId)
 }
 
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
-
-	// Uncomment this block to pass the first stage
 
 	l, err := net.Listen("tcp", "0.0.0.0:9092")
 	if err != nil {
@@ -174,5 +179,4 @@ func main() {
 		}
 		go handleConnection(conn)
 	}
-
 }
