@@ -87,13 +87,14 @@ func buildFullResponse(body []byte, correlationId uint32) []byte {
 	fullResPonse := append(headerBuf, body...)
 
 	final := make([]byte, 4)
+	fmt.Println(len(fullResPonse))
 	binary.BigEndian.PutUint32(final, uint32(len(fullResPonse)))
 	final = append(final, fullResPonse...)
 	return final
 }
 
 func buildDescribePartitionsResponse(topics []string, correlationId uint32) []byte {
-	body := make([]byte, 0)
+	var body = make([]byte, 0)
 	body = append(body, 0x00, 0x00,
 		0x00, 0x00) //throttle time ms
 	body = append(body, byte(len(topics)+1))
