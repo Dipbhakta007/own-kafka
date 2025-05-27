@@ -69,6 +69,7 @@ func extractTopicNames(topicStream []byte) []string {
 	idx++
 
 	var topics = make([]string, 0)
+	fmt.Println("Topic numbers")
 	fmt.Println(topicNum)
 
 	for range topicNum {
