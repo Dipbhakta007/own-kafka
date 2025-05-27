@@ -68,6 +68,9 @@ func extractTopicNames(topicStream []byte) []string {
 
 	idx++ //tag Buffer
 
+	fmt.Println(idx)
+	fmt.Println(topicStream[idx])
+
 	topicNum := int(topicStream[idx]) - 1
 	idx++
 
