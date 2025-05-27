@@ -62,6 +62,9 @@ func handleConnection(conn net.Conn) {
 
 func extractTopicNames(topicStream []byte) []string {
 	idx := 0
+	cilentIdLength := binary.BigEndian.Uint16(topicStream[0:2])
+	idx += int(cilentIdLength)
+
 	topicNum := int(topicStream[idx]) - 1
 	idx++
 
