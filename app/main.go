@@ -106,6 +106,7 @@ func buildDescribePartitionsResponse(topics []string, correlationId uint32) []by
 		body = append(body, 0x01)                   // No Partitions
 		body = append(body, 0x00)                   // Tagged Fields
 	}
+	body = append(body, 0xFF) // next_cursor (null)
 	body = append(body, 0x00) // Tagged Fields
 
 	return buildFullResponse(body, correlationId)
