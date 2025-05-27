@@ -71,6 +71,8 @@ func extractTopicNames(topicStream []byte) []string {
 		topicNameLen := int(topicStream[idx]) - 1
 		idx++
 		topicName := string(topicStream[idx : idx+topicNameLen])
+		fmt.Println("Topic Found")
+		fmt.Println(topicName)
 		topics = append(topics, topicName)
 		idx += 16
 		partitionsLen := int(topicStream[idx]) - 1
@@ -87,7 +89,6 @@ func buildFullResponse(body []byte, correlationId uint32) []byte {
 	fullResPonse := append(headerBuf, body...)
 
 	final := make([]byte, 4)
-	fmt.Println(len(fullResPonse))
 	binary.BigEndian.PutUint32(final, uint32(len(fullResPonse)))
 	final = append(final, fullResPonse...)
 	return final
