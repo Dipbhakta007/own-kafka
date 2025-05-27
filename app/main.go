@@ -94,7 +94,7 @@ func buildFullResponse(body []byte, correlationId uint32) []byte {
 
 func buildDescribePartitionsResponse(topics []string, correlationId uint32) []byte {
 	body := make([]byte, 0)
-	body = append(body, 0x00) //throttle_time_ms
+	body = append(body, 0x00, 0x00) //throttle_time_ms
 	body = append(body, byte(len(topics)+1))
 	for _, topicName := range topics {
 		body = append(body, byte(len(topicName)+1)) // topicName
