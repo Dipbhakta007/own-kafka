@@ -106,18 +106,24 @@ func buildFullResponse(body []byte, correlationId uint32) []byte {
 
 func buildDescribePartitionsResponse(topics []string, correlationId uint32) []byte {
 	var body = make([]byte, 0)
-	body = append(body, 0x00, 0x00,
+	body = append(body, 0x00) // Tagged buffer
+	body = append(body,
+		0x00, 0x00,
 		0x00, 0x00) //throttle time ms
 	body = append(body, byte(len(topics)+1))
 	for _, topicName := range topics {
+		body = append(body, 0x00, 0x03)             // Error code
 		body = append(body, byte(len(topicName)+1)) // topicName
 		body = append(body, topicName...)           // topicName
 		body = append(body, (make([]byte, 16))...)  //topic ID
-		body = append(body, 0x00, 0x03)             // Error code
+		body = append(body, 0x00)                   // is internal
 		body = append(body, 0x01)                   // No Partitions
-		body = append(body, 0x00)                   // Tagged Fields
+		body = append(body,
+			0x00, 0x00,
+			0x0d, 0xf8) // authorized operations
+		body = append(body, 0x00) // Tagged Fields
 	}
-	body = append(body, 0xFF) // next_cursor (null)
+	body = append(body, 0xff) // next cursor
 	body = append(body, 0x00) // Tagged Fields
 
 	return buildFullResponse(body, correlationId)
